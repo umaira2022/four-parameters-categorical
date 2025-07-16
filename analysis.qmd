@@ -2,5 +2,17 @@
 title: "Four Parameters Categorical"
 author: "Umaira"
 format: html
+execute: 
+  echo: false
 ---
 
+
+```{r}
+#| message: false
+#| warning: false
+library(tidyverse)
+library(primer.data)
+```
+
+Voting behavior often varies across demographic groups, with gender frequently associated with differences in political preferences.
+Using data from the 1992 U.S. National Election Study, which surveyed thousands of voters across the country, we examine how voting preferences for Clinton, Bush, and Perot differed between men and women.
