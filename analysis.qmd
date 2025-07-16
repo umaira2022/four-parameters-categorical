@@ -12,7 +12,43 @@ execute:
 #| warning: false
 library(tidyverse)
 library(primer.data)
+library(tidymodels)
+library(broom)
+library(nnet)  # required for multinom()
 ```
 
 Voting behavior often varies across demographic groups, with gender frequently associated with differences in political preferences.
 Using data from the 1992 U.S. National Election Study, which surveyed thousands of voters across the country, we examine how voting preferences for Clinton, Bush, and Perot differed between men and women.
+However, our model may be limited by potential non-representativeness in the survey data, as certain groups may be underrepresented among those who responded to the study.
+
+
+$$P(Y = k) = \frac{e^{\beta_{k0} + \beta_{k1} X_1 + \beta_{k2} X_2 + \cdots + \beta_{kn} X_n}}{\sum_{j=1}^{K} e^{\beta_{j0} + \beta_{j1} X_1 + \beta_{j2} X_2 + \cdots + \beta_{jn} X_n}}$$
+
+with $Y \sim \text{Multinomial}(\boldsymbol{\rho})$ where $\boldsymbol{\rho} = (\rho_1, \rho_2, \ldots, \rho_K)$ are the probabilities above.
+
+
+$$
+\begin{aligned}
+\hat{\rho}_{clinton} &= \frac{e^{0.45 - 0.25 \cdot male}}{1 + e^{0.45 - 0.25 \cdot male}} \\
+\hat{\rho}_{perot}   &= \frac{e^{-0.85 + 0.42 \cdot male}}{1 + e^{-0.85 + 0.42 \cdot male}} \\
+\hat{\rho}_{bush}    &= 1 - \hat{\rho}_{clinton} - \hat{\rho}_{perot}
+\end{aligned}
+$$
+
+
+```{r}
+ #| cache: true
+nes_92 <- nes |> 
+  filter(year == 1992) |> 
+  select(sex, pres_vote) |> 
+  drop_na() |> 
+  mutate(pres_vote = as.factor(case_when(
+    pres_vote == "Democrat" ~ "Clinton",
+    pres_vote == "Republican" ~ "Bush",
+    pres_vote == "Third Party" ~ "Perot",
+  ))) 
+
+fit_nes <- multinom_reg(engine = "nnet") |>
+  fit(pres_vote ~ sex, data = nes_92)
+
+```
