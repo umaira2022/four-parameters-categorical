@@ -1,0 +1,6 @@
+---
+title: "Four Parameters Categorical"
+author: "Umaira"
+format: html
+---
+
