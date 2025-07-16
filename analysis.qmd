@@ -15,11 +15,12 @@ library(primer.data)
 library(tidymodels)
 library(broom)
 library(nnet)  # required for multinom()
+library(gt)
+library(knitr)
 ```
 
-Voting behavior often varies across demographic groups, with gender frequently associated with differences in political preferences.
-Using data from the 1992 U.S. National Election Study, which surveyed thousands of voters across the country, we examine how voting preferences for Clinton, Bush, and Perot differed between men and women.
-However, our model may be limited by potential non-representativeness in the survey data, as certain groups may be underrepresented among those who responded to the study.
+Voting behavior often varies across demographic groups, with gender frequently associated with differences in political preferences. Using data from the 1992 U.S. National Election Study, which surveyed thousands of voters across the country, we examine how voting preferences for Clinton, Bush, and Perot differed between men and women.
+However, our model may be limited by potential non-representativeness in the survey data, as certain groups may be underrepresented among those who responded to the study. We model voter preference as a multinomial function of sex to capture how gender relates to support for each of the major presidential candidates.
 
 
 $$P(Y = k) = \frac{e^{\beta_{k0} + \beta_{k1} X_1 + \beta_{k2} X_2 + \cdots + \beta_{kn} X_n}}{\sum_{j=1}^{K} e^{\beta_{j0} + \beta_{j1} X_1 + \beta_{j2} X_2 + \cdots + \beta_{jn} X_n}}$$
@@ -50,5 +51,35 @@ nes_92 <- nes |>
 
 fit_nes <- multinom_reg(engine = "nnet") |>
   fit(pres_vote ~ sex, data = nes_92)
+
+```
+
+
+```{r}
+#| message: false
+#| warning: false
+library(broom)
+library(gt)
+
+tidy(fit_nes, conf.int = TRUE) |>
+  select(y.level, term, estimate, conf.low, conf.high) |>
+  gt() |>
+  tab_header(
+    title = "Model Estimates: Predicting 1992 Presidential Vote by Sex"
+  ) |>
+  tab_source_note(
+    source_note = "Source: National Election Studies (NES) 1992"
+  ) |>
+  fmt_number(
+    columns = c(estimate, conf.low, conf.high),
+    decimals = 3
+  ) |>
+  cols_label(
+    y.level = "Outcome",
+    term = "Term",
+    estimate = "Estimate",
+    conf.low = "Lower 95%",
+    conf.high = "Upper 95%"
+  )
 
 ```
